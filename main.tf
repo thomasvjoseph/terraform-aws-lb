@@ -40,10 +40,10 @@ resource "aws_lb_target_group" "target_group" {
 }
 
 resource "aws_lb_target_group_attachment" "target_group_attachment" {
-  for_each = var.use_for == "EC2" ? { for idx, target in var.lb_target_id : idx => target } : {}
+  count = var.use_for == "EC2" && length(try(var.lb_target_id, [])) > 0 ? length(var.lb_target_id) : 0
 
   target_group_arn = aws_lb_target_group.target_group.arn
-  target_id        = each.value  # Referring to instance or IP based on the target type
+  target_id        = var.lb_target_id[count.index]  # Use count.index to reference the specific target
   port             = var.tg_port_number
 }
 
