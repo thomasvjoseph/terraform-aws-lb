@@ -40,10 +40,11 @@ resource "aws_lb_target_group" "target_group" {
 }
 
 resource "aws_lb_target_group_attachment" "target_group_attachment" {
-  count             = var.use_for == "EC2" && length(var.lb_target_id) > 0 ? 1 : 0
-  target_group_arn  = aws_lb_target_group.target_group.arn
-  target_id         = element(var.lb_target_id, 0)
-  port              = var.tg_port_number
+  for_each = length(var.lb_target_id) > 0 && var.use_for == "EC2" ? { for idx, target in var.lb_target_id : idx => target } : {}
+
+  target_group_arn = aws_lb_target_group.target_group.arn
+  target_id        = each.value
+  port             = var.tg_port_number
 }
 
 resource "aws_lb_listener" "http" {
