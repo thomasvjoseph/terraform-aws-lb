@@ -8,12 +8,6 @@ variable "lb_security_group" {
   type        = list(string)
 }
 
-variable "lb_target_type" {
-  description = "Target type for the load balancer (instance for EC2, ip for Fargate)"
-  type        = string
-  default     = "instance" # You can set "ip" for Fargate-based ECS
-}
-
 variable "tg_name" {
   description = "Target group name"
   type        = string
