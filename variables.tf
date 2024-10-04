@@ -3,20 +3,15 @@ variable "lb_name" {
   type        = string
 }
 
-variable "scheme" {
-  description = "Load balancer scheme (internet-facing or internal)"
-  type        = bool
-  default     = false
-}
-
 variable "lb_security_group" {
   description = "Security groups for the load balancer"
   type        = list(string)
 }
 
 variable "lb_target_type" {
-  description = "Target type for the load balancer"
+  description = "Target type for the load balancer (instance for EC2, ip for Fargate)"
   type        = string
+  default     = "instance" # You can set "ip" for Fargate-based ECS
 }
 
 variable "tg_name" {
@@ -34,14 +29,8 @@ variable "lb_port_number" {
   type        = number
 }
 
-variable "lb_listener_protocol" {
-  description = "Protocol for the load balancer listener"
-  type        = string
-  default     = "HTTP"
-}
-
 variable "lb_target_id" {
-  description = "List of target IDs"
+  description = "List of target IDs (instance IDs for EC2, IP addresses for Fargate)"
   type        = list(string)
 }
 
@@ -61,7 +50,7 @@ variable "env" {
 }
 
 variable "use_for" {
-  description = "Defines whether the LB is used for EC2 or ECS"
+  description = "Defines whether the LB is used for EC2 or Fargate (EC2 or Fargate)"
   type        = string
 }
 
@@ -73,12 +62,6 @@ variable "vpc_id" {
 variable "subnets" {
   description = "List of subnets where the load balancer will be deployed"
   type        = list(string)
-}
-
-variable "enable_deletion_protection" {
-  description = "Enable deletion protection for the load balancer"
-  type        = bool
-  default     = false
 }
 
 # Health Check Optional Variables

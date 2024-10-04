@@ -1,13 +1,13 @@
 resource "aws_lb" "load_balancer" {
   name                        = var.lb_name
-  internal                    = var.scheme
+  internal                    = false
   load_balancer_type          = var.load_balancer_type
   ip_address_type             = "ipv4"
   security_groups             = var.lb_security_group
   subnets                     = var.subnets
-  enable_deletion_protection  = var.enable_deletion_protection
+  enable_deletion_protection  = false
 
-  tags  = { 
+  tags  = {
     "Name"                    = var.name
     "Env"                     = var.env
     "Terraform"               = "true"
@@ -15,12 +15,12 @@ resource "aws_lb" "load_balancer" {
 }
 
 resource "aws_lb_target_group" "target_group" {
-  name                        = var.tg_name
-  target_type                 = var.lb_target_type
-  port                        = var.tg_port_number
-  protocol                    = "HTTP"
-  vpc_id                      = var.vpc_id
-  ip_address_type             = "ipv4"
+  name            = var.tg_name
+  target_type     = var.use_for == "EC2" ? "instance" : "ip"   # Dynamic target type based on EC2 or Fargate
+  port            = var.tg_port_number
+  protocol        = "HTTP"
+  vpc_id          = var.vpc_id
+  ip_address_type = "ipv4"
 
   health_check {
     path                      = var.health_check_path
@@ -40,17 +40,17 @@ resource "aws_lb_target_group" "target_group" {
 }
 
 resource "aws_lb_target_group_attachment" "target_group_attachment" {
-  for_each = length(var.lb_target_id) > 0 && var.use_for == "EC2" ? { for idx, target in var.lb_target_id : idx => target } : {}
+  for_each = var.use_for == "EC2" ? { for idx, target in var.lb_target_id : idx => target } : {}
 
   target_group_arn = aws_lb_target_group.target_group.arn
-  target_id        = each.value
+  target_id        = each.value  # Referring to instance or IP based on the target type
   port             = var.tg_port_number
 }
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.load_balancer.arn
   port              = var.lb_port_number
-  protocol          = var.lb_listener_protocol
+  protocol          = "HTTP"
   default_action {
     type            = "forward"
     target_group_arn = aws_lb_target_group.target_group.arn
