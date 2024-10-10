@@ -12,46 +12,49 @@ Features
 	•	Supports both EC2 and ECS (Fargate) target types
 	•	Configurable through variables for flexible deployments
 
-## Usage
+
+## Usage/Examples
 
 ```hcl
-module "alb" {
-  source  = "your-username/alb/aws"  # Replace with your module's path on the Terraform Registry
-  version = "x.y.z"
+    module "alb" {
+    source  = "thomasvjoseph/lb/aws"
+    version = "x.y.z"
 
-  vpc_id  = "vpc-12345678"
-  subnets = ["subnet-abcdef12", "subnet-abcdef34"]
+    vpc_id  = "vpc-12345678"
+    subnets = ["subnet-abcdef12", "subnet-abcdef34"]
 
-  lb_resources = {
-    "example" = {
-      lb_name            = "example-lb"
-      lb_security_group  = ["sg-0123456789abcdef0"]
-      lb_target_type     = "instance"  # Options: instance, ip
-      tg_name            = "example-tg"
-      tg_port_number     = 80
-      lb_port_number     = 80
-      lb_target_id       = ["i-0123456789abcdef0"]  # For EC2 targets, list of instance IDs
-      load_balancer_type = "application"
-      name               = "example-lb"
-      env                = "prod"
-      use_for            = "EC2"  # or ECS
-    },
-    "ecs-example" = {
-      lb_name            = "ecs-example-lb"
-      lb_security_group  = ["sg-0123456789abcdef1"]
-      lb_target_type     = "ip"
-      tg_name            = "ecs-example-tg"
-      tg_port_number     = 8080
-      lb_port_number     = 8080
-      lb_target_id       = []  # For ECS targets, leave this empty
-      load_balancer_type = "application"
-      name               = "ecs-example-lb"
-      env                = "dev"
-      use_for            = "ECS"
+        lb_resources = {
+            "example" = {
+            lb_name            = "example-lb"
+            lb_security_group  = ["sg-0123456789abcdef0"]
+            lb_target_type     = "instance"  # Options: instance, ip
+            tg_name            = "example-tg"
+            tg_port_number     = 80
+            lb_port_number     = 80
+            lb_target_id       = ["i-0123456789abcdef0"]  # For EC2 targets, list of instance IDs
+            load_balancer_type = "application"
+            name               = "example-lb"
+            env                = "prod"
+            use_for            = "EC2"  # or ECS
+            },
+            "ecs-example" = {
+            lb_name            = "ecs-example-lb"
+            lb_security_group  = ["sg-0123456789abcdef1"]
+            lb_target_type     = "ip"
+            tg_name            = "ecs-example-tg"
+            tg_port_number     = 8080
+            lb_port_number     = 8080
+            lb_target_id       = []  # For ECS targets, leave this empty
+            load_balancer_type = "application"
+            name               = "ecs-example-lb"
+            env                = "dev"
+            use_for            = "ECS"
+            }
+        }
     }
-  }
-}
 ```
+
+
 ## Input Variables
 
 | Name            | Description                          | Type     | Default | Required |
@@ -109,3 +112,5 @@ This module is licensed under the MIT License.
 ## Author: 
 
 thomas joseph
+- [linkedin](https://www.linkedin.com/in/thomas-joseph-88792b132/)
+- [medium](https://medium.com/@thomasvjoseph)
