@@ -1,84 +1,90 @@
 resource "aws_lb" "load_balancer" {
-  name                        = var.lb_name
+  for_each                    = var.lb_resources
+  name                        = each.value.lb_name
   internal                    = false
-  load_balancer_type          = var.load_balancer_type
+  load_balancer_type          = each.value.load_balancer_type
   ip_address_type             = "ipv4"
-  security_groups             = var.lb_security_group
+  security_groups             = each.value.lb_security_group
   subnets                     = var.subnets
   enable_deletion_protection  = false
 
   tags  = {
-    "Name"                    = var.name
-    "Env"                     = var.env
+    "Name"                    = each.value.name 
+    "Env"                     = each.value.env
     "Terraform"               = "true"
   }
 }
 
 resource "aws_lb_target_group" "target_group" {
-  name            = var.tg_name
-  target_type     = var.use_for == "EC2" ? "instance" : "ip"   # Dynamic target type based on EC2 or Fargate
-  port            = var.tg_port_number
-  protocol        = "HTTP"
-  vpc_id          = var.vpc_id
-  ip_address_type = "ipv4"
+  for_each                    = var.lb_resources
+  name                        = each.value.tg_name
+  target_type                 = each.value.lb_target_type
+  port                        = each.value.tg_port_number
+  protocol                    = "HTTP"
+  vpc_id                      = var.vpc_id
+  ip_address_type             = "ipv4"
 
   health_check {
-    path                      = var.health_check_path
-    healthy_threshold         = var.health_check_healthy_threshold
-    unhealthy_threshold       = var.health_check_unhealthy_threshold
-    timeout                   = var.health_check_timeout
-    interval                  = var.health_check_interval
-    protocol                  = var.health_check_protocol
-    matcher                   = var.health_check_matcher
+    path                      = "/"
+    healthy_threshold         = 5
+    unhealthy_threshold       = 2
+    timeout                   = 5
+    interval                  = 30
+    protocol                  = "HTTP"
+    matcher                   = "200-399"
   }
 
   tags  = {
-    "Name"                    = var.name
-    "Env"                     = var.env
+    "Name"                    = each.value.name
+    "Env"                     = each.value.env
     "Terraform"               = "true"
   }
 }
 
 resource "aws_lb_target_group_attachment" "target_group_attachment" {
-  count = var.use_for == "EC2" && length(try(var.lb_target_id, [])) > 0 ? length(var.lb_target_id) : 0
-
-  target_group_arn = aws_lb_target_group.target_group.arn
-  target_id        = var.lb_target_id[count.index]  # Use count.index to reference the specific target
-  port             = var.tg_port_number
+  for_each = {
+    for k, v in var.lb_resources : k => v if v.use_for == "EC2" && length(v.lb_target_id) > 0
+  }
+  target_group_arn = aws_lb_target_group.target_group[each.key].arn
+  target_id        = element(each.value.lb_target_id, 0)  # Get the first element from the list , 
+  #target ID only for EC2. For ECS Fargate no target id , lb_target_id  = []   # No target ID needed for ECS Fargate
+  port             = each.value.tg_port_number
 }
 
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.load_balancer.arn
-  port              = var.lb_port_number
-  protocol          = "HTTP"
+  for_each                    = var.lb_resources
+  load_balancer_arn           = aws_lb.load_balancer[each.key].arn
+  port                        = each.value.lb_port_number
+  protocol                    = "HTTP"
   default_action {
-    type            = "forward"
-    target_group_arn = aws_lb_target_group.target_group.arn
+    type                      = "forward"
+    target_group_arn          = aws_lb_target_group.target_group[each.key].arn
   }
 
   tags  = {
-    "Name"          = var.name
-    "Env"           = var.env
-    "Terraform"     = "true"
+    "Name"                    = each.value.name
+    "Env"                     = each.value.env
+    "Terraform"               = "true"
   }
 }
 
 resource "aws_lb_listener_rule" "listener_rule" {
-  listener_arn = aws_lb_listener.http.arn
-  priority     = 100
+  for_each                    = var.lb_resources
+  listener_arn                = aws_lb_listener.http[each.key].arn
+  priority                    = 100
   action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.target_group.arn
+    type                      = "forward"
+    target_group_arn          = aws_lb_target_group.target_group[each.key].arn
   }
   condition {
     path_pattern {
-      values         = ["/*"]
+      values                  = ["/*"]
     }
   }
 
   tags  = {
-    "Name"          = var.name
-    "Env"           = var.env
-    "Terraform"     = "true"
+    "Name"                    = each.value.name
+    "Env"                     = each.value.env
+    "Terraform"               = "true"
   }
 }
