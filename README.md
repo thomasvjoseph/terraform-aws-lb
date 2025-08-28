@@ -30,9 +30,9 @@ Features
             lb_port_number     = 80
             lb_target_id       = ["i-0123456789abcdef0"]  # For EC2 targets, list of instance IDs
             load_balancer_type = "application"
-            name               = "example-lb"
-            env                = "prod"
-            use_for            = "EC2"  # or ECS
+            tags = {
+                Name = "LB"
+            }
             },
             "ecs-example" = {
             lb_name            = "ecs-example-lb"
@@ -43,9 +43,9 @@ Features
             lb_port_number     = 8080
             lb_target_id       = []  # For ECS targets, leave this empty
             load_balancer_type = "application"
-            name               = "ecs-example-lb"
-            env                = "dev"
-            use_for            = "ECS"
+            tags = {
+                Name = "LB"
+            }
             }
         }
     }
