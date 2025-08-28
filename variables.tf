@@ -10,6 +10,7 @@ variable "lb_resources" {
     lb_target_id        = list(string)
     load_balancer_type  = string
     tags                = map(string)
+    use_for             = string  # "EC2" or "ECS"
   }))
 }
 
