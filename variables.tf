@@ -9,6 +9,7 @@ variable "lb_resources" {
     lb_port_number      = number
     lb_target_id        = list(string)
     load_balancer_type  = string
+    tags                = map(string)
   }))
 }
 
@@ -20,9 +21,4 @@ variable "vpc_id" {
 variable "subnets" {
   description = "value of the id of the subnets"
   type = list(string)
-}
-
-variable "tags" {
-  description = "Tags to apply to all resources"
-  type = map(string)
 }

@@ -8,7 +8,7 @@ resource "aws_lb" "load_balancer" {
   subnets                     = var.subnets
   enable_deletion_protection  = false
 
-  tags  = var.tags
+  tags  = each.value.tags
 }
 
 resource "aws_lb_target_group" "target_group" {
@@ -30,7 +30,7 @@ resource "aws_lb_target_group" "target_group" {
     matcher                   = "200-399"
   }
 
-  tags = var.tags
+  tags = each.value.tags
 }
 
 resource "aws_lb_target_group_attachment" "target_group_attachment" {
@@ -53,7 +53,7 @@ resource "aws_lb_listener" "http" {
     target_group_arn          = aws_lb_target_group.target_group[each.key].arn
   }
 
-  tags = var.tags
+  tags = each.value.tags
 }
 
 resource "aws_lb_listener_rule" "listener_rule" {
@@ -70,5 +70,5 @@ resource "aws_lb_listener_rule" "listener_rule" {
     }
   }
 
-  tags = var.tags
+  tags = each.value.tags
 }
