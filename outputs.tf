@@ -1,6 +1,6 @@
 output "alb_dns_name" {
   description = "The domain name of the load balancer"
-  value       = { for k, v in aws_lb.load_balancer: k => v.dns_name }
+  value       = { for k, v in aws_lb.load_balancer : k => v.dns_name }
 }
 
 output "alb_arn" {
