@@ -5,7 +5,7 @@ resource "aws_lb" "load_balancer" {
   load_balancer_type         = each.value.load_balancer_type
   ip_address_type            = "ipv4"
   security_groups            = each.value.lb_security_group
-  subnets                    = var.subnets
+  subnets                    = each.value.subnets
   enable_deletion_protection = each.value.enable_deletion_protection
 
   tags = each.value.tags
@@ -35,12 +35,18 @@ resource "aws_lb_target_group" "target_group" {
 
 resource "aws_lb_target_group_attachment" "target_group_attachment" {
   for_each = {
-    for k, v in var.lb_resources : k => v if v.use_for == "EC2" && length(v.lb_target_id) > 0
+    for pair in flatten([
+      for k, v in var.lb_resources : [
+        for target_id in v.lb_target_id : {
+          lb_key    = k
+          target_id = target_id
+        }
+      ] if v.use_for == "EC2"
+    ]) : "${pair.lb_key}-${pair.target_id}" => pair
   }
-  target_group_arn = aws_lb_target_group.target_group[each.key].arn
-  target_id        = element(each.value.lb_target_id, 0) # Get the first element from the list , 
-  #target ID only for EC2. For ECS Fargate no target id , lb_target_id  = []   # No target ID needed for ECS Fargate
-  port = each.value.tg_port_number
+  target_group_arn = aws_lb_target_group.target_group[each.value.lb_key].arn
+  target_id        = each.value.target_id
+  port             = var.lb_resources[each.value.lb_key].tg_port_number
 }
 
 resource "aws_lb_listener" "http" {
